@@ -65,6 +65,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             ele.clear()
             LOG_DEBUG('元素 loc: {} ,location: {} 清除输入框内容'.format(loc, ele.location))
         except Exception as e:
@@ -77,6 +78,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             ele.clear()
             ele.send_keys(content)
             LOG_DEBUG('在元素 loc: {} ,location: {} 输入内容: {}'.format(loc, ele.location, content))
@@ -90,6 +92,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             ele.click()
             LOG_DEBUG('单击元素 loc: {} ,location: {}'.format(loc, ele.location))
         except Exception as e:
@@ -102,6 +105,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             actions = ActionChains(self.driver)
             actions.double_click(ele)
             actions.perform()
@@ -116,6 +120,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             actions = ActionChains(self.driver)
             actions.context_click(ele)
             actions.perform()
@@ -141,6 +146,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             value = ele.get_attribute(name)
             if isinstance(value, unicode):
                 value = value.encode('utf-8', errors='ignore')
@@ -157,6 +163,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             selected_flag = ele.is_selected()
             LOG_DEBUG('元素 loc: {} ,location: {} 是否被选中: {}'.format(loc, ele.location, selected_flag))
             return selected_flag
@@ -171,6 +178,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             enabled_flag = ele.is_enabled()
             LOG_DEBUG('元素 loc: {} ,location: {} 是否可点击: {}'.format(loc, ele.location, enabled_flag))
             return enabled_flag
@@ -185,6 +193,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             displayed_flag = ele.is_displayed()
             LOG_DEBUG('元素 loc: {} ,location: {} 是否可见: {}'.format(loc, ele.location, displayed_flag))
             return displayed_flag
@@ -206,6 +215,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             ele.submit()
             LOG_DEBUG('元素 loc: {} ,location: {}, 提交表单'.format(loc, ele.location))
         except Exception as e:
@@ -225,6 +235,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             text = ele.text
             if isinstance(text, unicode):
                 text = text.encode('utf-8', errors='ignore')
@@ -260,6 +271,7 @@ class BasePage(object):
         if action not in action_select:
             LOG_DEBUG('action: {}参数错误, 可选参数为: {}'.format(action, action_select))
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             LOG_DEBUG('移动到坐标 x:{}, y:{}, 点击坐标'.format(xoffset, yoffset))
             actions = ActionChains(self.driver)
             actions.move_by_offset(xoffset, yoffset)
@@ -282,6 +294,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             LOG_DEBUG('移动到坐标 {}'.format(ele.location))
             actions = ActionChains(self.driver)
             LOG_DEBUG('移动当前坐标的相对坐标 x: {}, y: {}'.format(xoffset, yoffset))
@@ -300,6 +313,7 @@ class BasePage(object):
         if action not in action_select:
             LOG_DEBUG('action: {}参数错误, 可选参数为: {}'.format(action, action_select))
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             LOG_DEBUG('移动到坐标 {}'.format(ele.location))
             actions = ActionChains(self.driver)
             LOG_DEBUG('移动当前坐标的相对坐标 x: {}, y: {}, 点击坐标'.format(xoffset, yoffset))
@@ -323,6 +337,7 @@ class BasePage(object):
             if not ele:
                 ele = self.find_element(loc, strict=strict)
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             LOG_DEBUG('移动到 loc: {} ,location: {}'.format(loc, ele.location))
             actions = ActionChains(self.driver)
             actions.move_to_element(ele)
@@ -340,6 +355,7 @@ class BasePage(object):
         if action not in action_select:
             LOG_DEBUG('action: {}参数错误, 可选参数为: {}'.format(action, action_select))
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             LOG_DEBUG('移动到 loc: {} ,location: {}, 点击坐标'.format(loc, ele.location))
             actions = ActionChains(self.driver)
             actions.move_to_element(ele)
@@ -486,6 +502,7 @@ class BasePage(object):
                 if not ele:
                     ele = self.find_element(loc, strict=strict)
             try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
                 select = Select(ele)
                 function_map = {
                     'index': select.select_by_index,

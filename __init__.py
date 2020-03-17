@@ -10,6 +10,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 import platform
 from common.logger import *
+
+
 class UIFrame(unittest.TestCase):
     # UI自动化用例基类
 
@@ -50,7 +52,7 @@ class UIFrame(unittest.TestCase):
                 LOG_DEBUG('当前已处于登录状态')
             else:
                 LOG_DEBUG('当前未登录,开始自动登录')
-                self.user_login(username=username, pwd=pwd)    
+                self.user_login(username=username, pwd=pwd)
 
     def tearDown(self):
         pass
@@ -58,8 +60,8 @@ class UIFrame(unittest.TestCase):
     @classmethod
     def read_config(cls):
         pass
-    
-   def get(self, url):
+
+    def get(self, url):
         if not (url.startswith(r'http://') or url.startswith(r'https://')):
             if not url.startswith(r'/'):
                 url = '/' + url
@@ -78,10 +80,14 @@ class UIFrame(unittest.TestCase):
 
     def switch_to_new_window(self):
         # 切换到其他窗口
-        window_handles = self.driver.window_handles
-        current_window_handle = self.driver.current_window_handle
-        LOG_DEBUG('当前窗口句柄为: {}, 所有句柄为: {}'.format(current_window_handle, window_handles))
         try:
+            window_handles = self.driver.window_handles
+            if len(window_handles) == 1:
+                self.driver.switch_to.window(window_handles[0])
+                LOG_DEBUG('切换窗口成功, 当前窗口为: {}'.format(self.get_title()))
+                return True
+            current_window_handle = self.driver.current_window_handle
+            LOG_DEBUG('当前窗口句柄为: {}, 所有句柄为: {}'.format(current_window_handle, window_handles))
             for window_handle in window_handles:
                 if window_handle != current_window_handle:
                     self.driver.switch_to.window(window_handle)
@@ -199,16 +205,6 @@ class UIFrame(unittest.TestCase):
             LOG_DEBUG('截图成功, 图片路径: {}'.format(filepath))
         else:
             LOG_DEBUG('截图失败!')
-
-    def user_login(self, username='admin', pwd='epsgreat888'):
-        self.get(url=self.index_url)
-        self.index_page.text_username(username)
-        self.index_page.text_pwd(pwd)
-        self.index_page.click_login_btn()
-        LOG_DEBUG('自动登录')
-
-    def login_out(self):
-        self.mgr_base_page.click_logout_btn()
 
     def get_cur_url(self):
         cur_url = self.driver.current_url

@@ -20,9 +20,11 @@ class BasePage(object):
     def __init__(self, driver):
         self.driver = driver
         self.read_config()
-    def read_config(self):
+
+        def read_config(self):
         pass
-    def find_element(self, loc, strict=False):
+
+    def find_element(self, loc, strict=False, timeout=10):
         """
 
         :param loc:
@@ -30,27 +32,38 @@ class BasePage(object):
         :return:
         """
         try:
-            WebDriverWait(self.driver, 10, 0.5).until(EC.presence_of_element_located(loc))
+            WebDriverWait(self.driver, timeout, 0.5).until(EC.presence_of_element_located(loc))
         except Exception as e:
-            # LOG_DEBUG('ERROR: {}'.format(e))
-            LOG_DEBUG('页面未找到元素, loc: {}'.format(loc))
+            LOG_DEBUG('[1] 页面未找到元素, loc: {}'.format(loc))
         try:
-            WebDriverWait(self.driver, 10, 0.5).until(EC.visibility_of_element_located(loc))
+            WebDriverWait(self.driver, timeout, 0.5).until(EC.visibility_of_element_located(loc))
             return self.driver.find_element(*loc)
         except Exception as e:
-            LOG_DEBUG('ERROR [find_element]: {}'.format(e))
-            LOG_DEBUG('页面未找到元素, loc: {}'.format(loc))
+            LOG_DEBUG('[1] ERROR [find_element]: {}'.format(e))
+            LOG_DEBUG('[1] 页面未找到元素, loc: {}'.format(loc))
+        self.refresh()
+        time.sleep(8)
+        try:
+            WebDriverWait(self.driver, timeout, 0.5).until(EC.presence_of_element_located(loc))
+        except Exception as e:
+            LOG_DEBUG('[2] 页面未找到元素, loc: {}'.format(loc))
+        try:
+            WebDriverWait(self.driver, timeout, 0.5).until(EC.visibility_of_element_located(loc))
+            return self.driver.find_element(*loc)
+        except Exception as e:
+            LOG_DEBUG('[2] ERROR [find_element]: {}'.format(e))
+            LOG_DEBUG('[2] 页面未找到元素, loc: {}'.format(loc))
             if strict:
                 raise e
 
-    def find_elements(self, loc, strict=False):
+    def find_elements(self, loc, strict=False, timeout=10):
         try:
-            WebDriverWait(self.driver, 10, 0.5).until(EC.presence_of_element_located(loc))
+            WebDriverWait(self.driver, timeout, 0.5).until(EC.presence_of_element_located(loc))
         except Exception as e:
             LOG_DEBUG('ERROR [find_element]: {}'.format(e))
             LOG_DEBUG('页面未找到元素: {}'.format(loc))
         try:
-            WebDriverWait(self.driver, 10, 0.5).until(EC.visibility_of_element_located(loc))
+            WebDriverWait(self.driver, timeout, 0.5).until(EC.visibility_of_element_located(loc))
             return self.driver.find_elements(*loc)
         except Exception as e:
             LOG_DEBUG('ERROR [find_elements]: {}'.format(e))
@@ -64,12 +77,13 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            ele.clear()
-            LOG_DEBUG('元素 loc: {} ,location: {} 清除输入框内容'.format(loc, ele.location))
-        except Exception as e:
-            LOG_DEBUG('ERROR [clear]: {}'.format(e))
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                ele.clear()
+                LOG_DEBUG('元素 loc: {} ,location: {} 清除输入框内容'.format(loc, ele.location))
+            except Exception as e:
+                LOG_DEBUG('ERROR [clear]: {}'.format(e))
 
     def text_content(self, content, loc=None, ele=None, strict=False):
         if not (loc or ele):
@@ -77,26 +91,28 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            ele.clear()
-            ele.send_keys(content)
-            LOG_DEBUG('在元素 loc: {} ,location: {} 输入内容: {}'.format(loc, ele.location, content))
-        except Exception as e:
-            LOG_DEBUG('ERROR [text_content]: {}'.format(e))
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                ele.clear()
+                ele.send_keys(content)
+                LOG_DEBUG('在元素 loc: {} ,location: {} 输入内容: {}'.format(loc, ele.location, content))
+            except Exception as e:
+                LOG_DEBUG('ERROR [text_content]: {}'.format(e))
 
-    def click(self, loc=None, ele=None, strict=False):
+    def click(self, loc=None, ele=None, strict=False, timeout=10):
         if not (loc or ele):
             LOG_ERROR('loc: {}, ele: {}, 请至少输入一个有效参数!'.format(loc, ele))
         else:
             if not ele:
-                ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            ele.click()
-            LOG_DEBUG('单击元素 loc: {} ,location: {}'.format(loc, ele.location))
-        except Exception as e:
-            LOG_DEBUG('ERROR [click]: {}'.format(e))
+                ele = self.find_element(loc, strict=strict, timeout=timeout)
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                ele.click()
+                LOG_DEBUG('单击元素 loc: {} ,location: {}'.format(loc, ele.location))
+            except Exception as e:
+                LOG_DEBUG('ERROR [click]: {}'.format(e))
 
     def double_click(self, loc=None, ele=None, strict=False):
         if not (loc or ele):
@@ -104,14 +120,15 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            actions = ActionChains(self.driver)
-            actions.double_click(ele)
-            actions.perform()
-            LOG_DEBUG('双击元素 loc: {} ,location: {}'.format(loc, ele.location))
-        except Exception as e:
-            LOG_DEBUG('ERROR [double_click]: {}'.format(e))
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                actions = ActionChains(self.driver)
+                actions.double_click(ele)
+                actions.perform()
+                LOG_DEBUG('双击元素 loc: {} ,location: {}'.format(loc, ele.location))
+            except Exception as e:
+                LOG_DEBUG('ERROR [double_click]: {}'.format(e))
 
     def context_click(self, loc=None, ele=None, strict=False):
         if not (loc or ele):
@@ -119,16 +136,17 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            actions = ActionChains(self.driver)
-            actions.context_click(ele)
-            actions.perform()
-            LOG_DEBUG('右键单击元素 loc: {} ,location: {}'.format(loc, ele.location))
-        except Exception as e:
-            LOG_DEBUG('ERROR [context_click]: {}'.format(e))
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                actions = ActionChains(self.driver)
+                actions.context_click(ele)
+                actions.perform()
+                LOG_DEBUG('右键单击元素 loc: {} ,location: {}'.format(loc, ele.location))
+            except Exception as e:
+                LOG_DEBUG('ERROR [context_click]: {}'.format(e))
 
-    def get_page_source(self):
+        def get_page_source(self):
         try:
             page_content = self.driver.page_source
             LOG_DEBUG('获取当前页面源码成功')
@@ -145,16 +163,17 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            value = ele.get_attribute(name)
-            if isinstance(value, unicode):
-                value = value.encode('utf-8', errors='ignore')
-            LOG_DEBUG('获取元素 loc: {} ,location: {} ,属性名: {},属性值: {}'.format(loc, ele.location, name, value))
-            return value
-        except Exception as e:
-            LOG_DEBUG('ERROR [get_attribute]: {}'.format(e))
-            return ''
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                value = ele.get_attribute(name)
+                if isinstance(value, unicode):
+                    value = value.encode('utf-8', errors='ignore')
+                LOG_DEBUG('获取元素 loc: {} ,location: {} ,属性名: {},属性值: {}'.format(loc, ele.location, name, value))
+                return value
+            except Exception as e:
+                LOG_DEBUG('ERROR [get_attribute]: {}'.format(e))
+                return ''
 
     def is_selected(self, loc=None, ele=None, strict=False):
         if not (loc or ele):
@@ -162,14 +181,15 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            selected_flag = ele.is_selected()
-            LOG_DEBUG('元素 loc: {} ,location: {} 是否被选中: {}'.format(loc, ele.location, selected_flag))
-            return selected_flag
-        except Exception as e:
-            LOG_DEBUG('ERROR [is_selected]: {}'.format(e))
-            return False
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                selected_flag = ele.is_selected()
+                LOG_DEBUG('元素 loc: {} ,location: {} 是否被选中: {}'.format(loc, ele.location, selected_flag))
+                return selected_flag
+            except Exception as e:
+                LOG_DEBUG('ERROR [is_selected]: {}'.format(e))
+                return False
 
     def is_enabled(self, loc=None, ele=None, strict=False):
         if not (loc or ele):
@@ -177,14 +197,15 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            enabled_flag = ele.is_enabled()
-            LOG_DEBUG('元素 loc: {} ,location: {} 是否可点击: {}'.format(loc, ele.location, enabled_flag))
-            return enabled_flag
-        except Exception as e:
-            LOG_DEBUG('ERROR [is_enabled]: {}'.format(e))
-            return False
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                enabled_flag = ele.is_enabled()
+                LOG_DEBUG('元素 loc: {} ,location: {} 是否可点击: {}'.format(loc, ele.location, enabled_flag))
+                return enabled_flag
+            except Exception as e:
+                LOG_DEBUG('ERROR [is_enabled]: {}'.format(e))
+                return False
 
     def is_displayed(self, loc=None, ele=None, strict=False):
         if not (loc or ele):
@@ -192,14 +213,15 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            displayed_flag = ele.is_displayed()
-            LOG_DEBUG('元素 loc: {} ,location: {} 是否可见: {}'.format(loc, ele.location, displayed_flag))
-            return displayed_flag
-        except Exception as e:
-            LOG_DEBUG('ERROR [is_displayed]: {}'.format(e))
-            return False
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                displayed_flag = ele.is_displayed()
+                LOG_DEBUG('元素 loc: {} ,location: {} 是否可见: {}'.format(loc, ele.location, displayed_flag))
+                return displayed_flag
+            except Exception as e:
+                LOG_DEBUG('ERROR [is_displayed]: {}'.format(e))
+                return False
 
     def screenshot(self, filepath):
         success_flag = self.driver.save_screenshot(filepath)
@@ -207,20 +229,21 @@ class BasePage(object):
             LOG_DEBUG('截图成功, 图片路径: {}'.format(filepath))
         else:
             LOG_DEBUG('截图失败!')
-    
+
     def submit(self, loc=None, ele=None, strict=False):
         if not (loc or ele):
             LOG_ERROR('loc: {}, ele: {}, 请至少输入一个有效参数!'.format(loc, ele))
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            ele.submit()
-            LOG_DEBUG('元素 loc: {} ,location: {}, 提交表单'.format(loc, ele.location))
-        except Exception as e:
-            LOG_DEBUG('表单提交失败')
-            raise e
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                ele.submit()
+                LOG_DEBUG('元素 loc: {} ,location: {}, 提交表单'.format(loc, ele.location))
+            except Exception as e:
+                LOG_DEBUG('表单提交失败')
+                raise e
 
     def get_text(self, loc=None, ele=None, strict=False):
         """
@@ -234,18 +257,19 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            text = ele.text
-            if isinstance(text, unicode):
-                text = text.encode('utf-8', errors='ignore')
-            LOG_DEBUG('元素 loc: {} ,location: {}, 获取文本信息为: {}'.format(loc, ele.location, text))
-            return text
-        except Exception as e:
-            LOG_DEBUG('获取文本信息失败: {}'.format(e))
-            return ''
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                text = ele.text
+                if isinstance(text, unicode):
+                    text = text.encode('utf-8', errors='ignore')
+                LOG_DEBUG('元素 loc: {} ,location: {}, 获取文本信息为: {}'.format(loc, ele.location, text))
+                return text.strip()
+            except Exception as e:
+                LOG_DEBUG('获取文本信息失败: {}'.format(e))
+                return ''
 
-    def move_by_offset(self, xoffset=0, yoffset=0):
+        def move_by_offset(self, xoffset=0, yoffset=0):
         """
         移动到指定坐标
         :param xoffset:
@@ -271,7 +295,6 @@ class BasePage(object):
         if action not in action_select:
             LOG_DEBUG('action: {}参数错误, 可选参数为: {}'.format(action, action_select))
         try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
             LOG_DEBUG('移动到坐标 x:{}, y:{}, 点击坐标'.format(xoffset, yoffset))
             actions = ActionChains(self.driver)
             actions.move_by_offset(xoffset, yoffset)
@@ -293,42 +316,45 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            LOG_DEBUG('移动到坐标 {}'.format(ele.location))
-            actions = ActionChains(self.driver)
-            LOG_DEBUG('移动当前坐标的相对坐标 x: {}, y: {}'.format(xoffset, yoffset))
-            actions.move_to_element_with_offset(ele, xoffset, yoffset)
-            actions.perform()
-        except Exception as e:
-            LOG_DEBUG('移动坐标失败: {}'.format(e))
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                LOG_DEBUG('移动到坐标 {}'.format(ele.location))
+                actions = ActionChains(self.driver)
+                LOG_DEBUG('移动当前坐标的相对坐标 x: {}, y: {}'.format(xoffset, yoffset))
+                actions.move_to_element_with_offset(ele, xoffset, yoffset)
+                actions.perform()
+            except Exception as e:
+                LOG_DEBUG('移动坐标失败: {}'.format(e))
 
-    def move_to_element_with_offset_and_click(self, loc=None, ele=None, strict=True, xoffset=0, yoffset=0, action='click'):
+    def move_to_element_with_offset_and_click(self, loc=None, ele=None, strict=True, xoffset=0, yoffset=0,
+                                              action='click'):
         if not (loc or ele):
             LOG_ERROR('loc: {}, ele: {}, 请至少输入一个有效参数!'.format(loc, ele))
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        action_select = ['click', 'double_click', 'context_click']
-        if action not in action_select:
-            LOG_DEBUG('action: {}参数错误, 可选参数为: {}'.format(action, action_select))
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            LOG_DEBUG('移动到坐标 {}'.format(ele.location))
-            actions = ActionChains(self.driver)
-            LOG_DEBUG('移动当前坐标的相对坐标 x: {}, y: {}, 点击坐标'.format(xoffset, yoffset))
-            actions.move_to_element_with_offset(ele, xoffset, yoffset)
-            if action == 'click':
-                actions.click()
-            elif action == 'double_click':
-                actions.double_click()
-            elif action == 'context_click':
-                actions.context_click()
-            else:
-                pass
-            actions.perform()
-        except Exception as e:
-            LOG_DEBUG('移动坐标失败: {}'.format(e))
+        if ele:
+            action_select = ['click', 'double_click', 'context_click']
+            if action not in action_select:
+                LOG_DEBUG('action: {}参数错误, 可选参数为: {}'.format(action, action_select))
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                LOG_DEBUG('移动到坐标 {}'.format(ele.location))
+                actions = ActionChains(self.driver)
+                LOG_DEBUG('移动当前坐标的相对坐标 x: {}, y: {}, 点击坐标'.format(xoffset, yoffset))
+                actions.move_to_element_with_offset(ele, xoffset, yoffset)
+                if action == 'click':
+                    actions.click()
+                elif action == 'double_click':
+                    actions.double_click()
+                elif action == 'context_click':
+                    actions.context_click()
+                else:
+                    pass
+                actions.perform()
+            except Exception as e:
+                LOG_DEBUG('移动坐标失败: {}'.format(e))
 
     def move_to_element(self, loc=None, ele=None, strict=False):
         if not (loc or ele):
@@ -336,14 +362,15 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            LOG_DEBUG('移动到 loc: {} ,location: {}'.format(loc, ele.location))
-            actions = ActionChains(self.driver)
-            actions.move_to_element(ele)
-            actions.perform()
-        except Exception as e:
-            LOG_DEBUG('移动坐标失败: {}'.format(e))
+        if ele:
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                LOG_DEBUG('移动到 loc: {} ,location: {}'.format(loc, ele.location))
+                actions = ActionChains(self.driver)
+                actions.move_to_element(ele)
+                actions.perform()
+            except Exception as e:
+                LOG_DEBUG('移动坐标失败: {}'.format(e))
 
     def move_to_element_and_click(self, loc=None, ele=None, strict=False, action='click'):
         if not (loc or ele):
@@ -351,38 +378,42 @@ class BasePage(object):
         else:
             if not ele:
                 ele = self.find_element(loc, strict=strict)
-        action_select = ['click', 'double_click', 'context_click']
-        if action not in action_select:
-            LOG_DEBUG('action: {}参数错误, 可选参数为: {}'.format(action, action_select))
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", ele)
-            LOG_DEBUG('移动到 loc: {} ,location: {}, 点击坐标'.format(loc, ele.location))
-            actions = ActionChains(self.driver)
-            actions.move_to_element(ele)
-            if action == 'click':
-                actions.click()
-            elif action == 'double_click':
-                actions.double_click()
-            elif action == 'context_click':
-                actions.context_click()
-            else:
-                pass
-            actions.perform()
-        except Exception as e:
-            LOG_DEBUG('移动坐标失败: {}'.format(e))
+        if ele:
+            action_select = ['click', 'double_click', 'context_click']
+            if action not in action_select:
+                LOG_DEBUG('action: {}参数错误, 可选参数为: {}'.format(action, action_select))
+            try:
+                self.driver.execute_script("arguments[0].scrollIntoView();", ele)
+                LOG_DEBUG('移动到 loc: {} ,location: {}, 点击坐标'.format(loc, ele.location))
+                actions = ActionChains(self.driver)
+                actions.move_to_element(ele)
+                if action == 'click':
+                    actions.click()
+                elif action == 'double_click':
+                    actions.double_click()
+                elif action == 'context_click':
+                    actions.context_click()
+                else:
+                    pass
+                actions.perform()
+            except Exception as e:
+                LOG_DEBUG('移动坐标失败: {}'.format(e))
 
-    def switch_to_new_window(self):
-        # 切换到其他窗口
-        window_handles = self.driver.window_handles
-        current_window_handle = self.current_window_handle
-        LOG_DEBUG('当前窗口句柄为: {}, 所有句柄为: {}'.format(current_window_handle, window_handles))
+        def swithc_to_alert(self, action='accept', text=''):
+        # 警告框处理
         try:
-            for window_handle in window_handles:
-                if window_handle != current_window_handle:
-                    self.driver.switch_to.window(window_handle)
-                    LOG_DEBUG('切换窗口成功, 当前窗口为: {}'.format(self.get_title()))
+            alert_label = {
+                'text': self.driver.switch_to_alert().text,
+                'accept': self.driver.switch_to_alert().accept(),
+                'dismiss': self.driver.switch_to_alert().dismiss(),
+                'send_keys': self.driver.switch_to_alert().send_keys(text)
+            }
+            if action == 'send_keys':
+                return alert_label[action]
+            else:
+                alert_label[action]
         except Exception as e:
-            LOG_DEBUG('切换窗口失败: {}'.format(e))
+            LOG_DEBUG('处理警告框失败: {}'.format(e))
 
     def execute_script(self, script, *args):
         # 执行js语句
@@ -481,7 +512,7 @@ class BasePage(object):
         except Exception as e:
             LOG_DEBUG('向弹窗输入内容失败: {}'.format(e))
 
-    def choice_select(self, by_type, text, loc=None, ele=None, strict=False):
+        def choice_select(self, by_type, text, loc=None, ele=None, strict=False):
         """
         选择select标签下拉框
         :param by_type: type: str e.g. 'index', 'value', 'visible_text'
@@ -571,53 +602,3 @@ class BasePage(object):
         else:
             pass
             # actions = ActionChains(self.driver)
-            # if action == 'click':
-            #     actions.click()
-            # elif action == 'double_click':
-            #     actions.double_click()
-            # elif action == 'context_click':
-            #     actions.context_click()
-            # else:
-            #     pass
-            # actions.perform()
-        actions = ActionChains(self.driver)
-        actions.key_down(key_map[key])
-        actions.key_up(key_map[key])
-        actions.perform()
-
-    def get_current_url(self):
-        current_url = self.driver.current_url
-        if isinstance(current_url, unicode):
-            current_url = current_url.encode('utf-8', errors='ignore')
-        LOG_DEBUG('当前url为: {}'.format(current_url))
-        return current_url
-
-    def keyboard_opr(self, key="回车键", loc=None, ele=None, strict=True):
-        """
-        键盘操作
-        :param opr_type: 操作类型 TODO 其他后续用到可再加
-        :param loc:
-        :param ele:
-        :param strict:
-        :return:
-        """
-        key_select = ['回车键', '空格键', '制表键', '回退键', '删除键']
-        if key not in key_select:
-            LOG_ERROR('参数key: {}输入错误, 可选有效参数为: {}'.format(key, key_select))
-        key_map = {
-            '回车键': Keys.ENTER,
-            '空格键': Keys.SPACE,
-            '制表键': Keys.TAB,
-            '回退键': Keys.ESCAPE,
-            '删除键': Keys.BACKSPACE
-        }
-        if not (loc or ele):
-            LOG_ERROR('loc: {}, ele: {}, 请至少输入一个有效参数!'.format(loc, ele))
-        else:
-            if not ele:
-                ele = self.find_element(loc, strict=strict)
-        try:
-            LOG_DEBUG('对元素 loc: {},执行{}操作'.format(loc, key))
-            ele.send_keys(key_map[key])
-        except Exception as e:
-            LOG_ERROR("键盘操作:{}失败: {}".format(key_map[key], e))
